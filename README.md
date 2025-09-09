@@ -1,2 +1,2 @@
 # cmx.github.io
-Language learning tools
+Language learning tools for different purposes
