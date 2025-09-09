@@ -1,0 +1,1764 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>英语词汇听写系统 - English Vocabulary Dictation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #6366f1;
+            --secondary-color: #8b5cf6;
+            --accent-color: #06b6d4;
+            --success-color: #10b981;
+            --error-color: #f43f5e;
+            --warning-color: #f59e0b;
+            --info-color: #3b82f6;
+            --bg-primary: linear-gradient(135deg, #fef7ff 0%, #f0f9ff 100%);
+            --bg-secondary: #f8fafc;
+            --bg-card: #ffffff;
+            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --shadow-light: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-medium: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-heavy: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            --radius-small: 8px;
+            --radius-medium: 12px;
+            --radius-large: 20px;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-primary);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+        }
+
+        .container {
+            background: var(--bg-card);
+            border-radius: var(--radius-large);
+            box-shadow: var(--shadow-heavy);
+            width: 100%;
+            max-width: 900px;
+            min-height: 650px;
+            overflow: hidden;
+            position: relative;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            background-clip: padding-box;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: var(--radius-large);
+            padding: 2px;
+            background: var(--bg-gradient);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: subtract;
+            -webkit-mask-composite: source-out;
+            pointer-events: none;
+        }
+
+        .header {
+            background: var(--bg-gradient);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '✨📚✏️🎯';
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            font-size: 1.2rem;
+            opacity: 0.7;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .header::after {
+            content: '🎓📖🌟💫';
+            position: absolute;
+            bottom: 10px;
+            left: 20px;
+            font-size: 1.2rem;
+            opacity: 0.7;
+            animation: float 3s ease-in-out infinite reverse;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 600;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .header h1::before {
+            content: '🎪';
+            margin-right: 10px;
+            font-size: 2rem;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.95;
+            font-weight: 400;
+        }
+
+
+        .progress-container {
+            padding: 20px 30px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--border-color);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color) 0%, var(--accent-color) 100%);
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        .progress-text {
+            display: flex;
+            justify-content: space-between;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .main-content {
+            padding: 40px 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 450px;
+            justify-content: center;
+        }
+
+        .welcome-screen {
+            text-align: center;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .welcome-screen h2 {
+            color: var(--text-primary);
+            margin-bottom: 20px;
+            font-size: 2rem;
+            font-weight: 300;
+        }
+
+        .difficulty-selection {
+            margin: 20px 0;
+        }
+
+        .difficulty-selection h3 {
+            color: var(--text-secondary);
+            margin-bottom: 15px;
+            font-weight: 400;
+        }
+
+        .difficulty-options {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .difficulty-btn {
+            padding: 12px 24px;
+            border: 2px solid var(--accent-color);
+            background: white;
+            color: var(--accent-color);
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            font-size: 0.9rem;
+            font-weight: 600;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .difficulty-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: var(--accent-color);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: all 0.3s ease;
+            z-index: -1;
+        }
+
+        .difficulty-btn:hover::before {
+            width: 200%;
+            height: 200%;
+        }
+
+        .difficulty-btn:hover, .difficulty-btn.active {
+            color: white;
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: var(--shadow-medium);
+        }
+
+        .difficulty-btn.active::before {
+            width: 200%;
+            height: 200%;
+        }
+
+        .mode-selection {
+            display: flex;
+            justify-content: center;
+            margin: 30px 0;
+        }
+
+        .mode-display {
+            background: linear-gradient(135deg, var(--info-color), var(--accent-color));
+            color: white;
+            padding: 20px 30px;
+            border-radius: var(--radius-medium);
+            text-align: center;
+            box-shadow: var(--shadow-medium);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .mode-display::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: shimmer 3s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(180deg); }
+        }
+
+        .mode-icon {
+            font-size: 1.5rem;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .mode-text {
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .start-btn {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+            box-shadow: var(--shadow-light);
+        }
+
+        .start-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-medium);
+        }
+
+        .start-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .question-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: var(--shadow-medium);
+            padding: 40px;
+            text-align: center;
+            width: 100%;
+            max-width: 600px;
+            position: relative;
+            transform: translateY(20px);
+            opacity: 0;
+            animation: slideIn 0.5s ease forwards;
+        }
+
+        @keyframes slideIn {
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .timer-controls {
+            position: absolute;
+            top: -20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .timer {
+            background: var(--error-color);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            box-shadow: var(--shadow-light);
+            transition: all 0.3s ease;
+        }
+
+        .timer.warning {
+            background: var(--warning-color);
+            animation: pulse 1s infinite;
+        }
+
+        .timer.paused {
+            background: var(--text-secondary);
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .pause-btn {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+        }
+
+        .pause-btn:hover {
+            background: var(--primary-color);
+        }
+
+        .word-display {
+            font-size: 2.5rem;
+            color: var(--text-primary);
+            margin-bottom: 20px;
+            font-weight: 300;
+            position: relative;
+        }
+
+        .pronunciation-btn {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            margin-left: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .pronunciation-btn:hover {
+            background: var(--primary-color);
+            transform: scale(1.05);
+        }
+
+        .word-info {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .word-length-hint {
+            background: var(--bg-secondary);
+            padding: 8px 15px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .input-group {
+            margin: 30px 0;
+            position: relative;
+        }
+
+        .word-input {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 1.2rem;
+            text-align: center;
+            outline: none;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .word-input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(108, 123, 127, 0.1);
+        }
+
+        .input-controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .submit-btn, .hint-btn, .skip-btn {
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .submit-btn {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .hint-btn {
+            background: var(--warning-color);
+            color: white;
+        }
+
+        .skip-btn {
+            background: var(--text-secondary);
+            color: white;
+        }
+
+        .submit-btn:hover:not(:disabled) {
+            background: #6da054;
+            transform: translateY(-1px);
+        }
+
+        .hint-btn:hover:not(:disabled) {
+            background: #ebc374;
+            transform: translateY(-1px);
+        }
+
+        .skip-btn:hover:not(:disabled) {
+            background: #5a6268;
+            transform: translateY(-1px);
+        }
+
+        .submit-btn:disabled, .hint-btn:disabled, .skip-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .feedback {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: 500;
+            text-align: center;
+            animation: feedbackSlide 0.5s ease;
+        }
+
+        @keyframes feedbackSlide {
+            from {
+                transform: translateY(10px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .feedback.correct {
+            background: rgba(127, 176, 105, 0.1);
+            color: var(--success-color);
+            border: 1px solid rgba(127, 176, 105, 0.3);
+        }
+
+        .feedback.incorrect {
+            background: rgba(224, 122, 95, 0.1);
+            color: var(--error-color);
+            border: 1px solid rgba(224, 122, 95, 0.3);
+        }
+
+        .hint-display {
+            background: rgba(242, 204, 143, 0.1);
+            color: var(--warning-color);
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-size: 0.9rem;
+            border: 1px solid rgba(242, 204, 143, 0.3);
+        }
+
+        .result-screen {
+            text-align: center;
+            padding: 40px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .final-score {
+            font-size: 4rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin: 20px 0;
+        }
+
+        .score-details {
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .score-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            font-size: 1.1rem;
+        }
+
+        .restart-btn, .history-btn, .mistakes-btn {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+        }
+
+        .restart-btn:hover, .history-btn:hover, .mistakes-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-medium);
+        }
+
+        .mistakes-btn {
+            background: linear-gradient(135deg, var(--error-color) 0%, #f2a089 100%);
+        }
+
+        .mistakes-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .word-list {
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .word-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .word-item:last-child {
+            border-bottom: none;
+        }
+
+        .word-item:hover {
+            background: rgba(108, 123, 127, 0.05);
+            border-radius: 5px;
+        }
+
+        .word-status {
+            padding: 4px 8px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .status-correct {
+            background: rgba(127, 176, 105, 0.2);
+            color: var(--success-color);
+        }
+
+        .status-incorrect {
+            background: rgba(224, 122, 95, 0.2);
+            color: var(--error-color);
+        }
+
+        .status-hint {
+            background: rgba(242, 204, 143, 0.2);
+            color: var(--warning-color);
+        }
+
+        .status-skip {
+            background: rgba(108, 123, 127, 0.2);
+            color: var(--text-secondary);
+        }
+
+        .history-modal, .mistakes-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+        }
+
+        .mistakes-list {
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .mistake-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            margin: 8px 0;
+            background: white;
+            border-radius: 8px;
+            border-left: 4px solid var(--error-color);
+        }
+
+        .mistake-word {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .mistake-english {
+            font-weight: bold;
+            color: var(--text-primary);
+        }
+
+        .mistake-chinese {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .download-btn {
+            background: var(--success-color);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin: 20px 0;
+            transition: all 0.3s ease;
+        }
+
+        .download-btn:hover {
+            background: #6da054;
+            transform: translateY(-1px);
+        }
+
+        .download-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* 响应式设计优化 */
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+
+            .header {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .main-content {
+                padding: 20px 15px;
+            }
+
+            .question-card {
+                padding: 25px 20px;
+                margin: 0;
+            }
+
+            .word-display {
+                font-size: 2rem;
+            }
+
+            .mode-selection {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .mode-btn {
+                width: 200px;
+            }
+
+            .input-controls {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .submit-btn, .hint-btn, .skip-btn {
+                width: 120px;
+            }
+
+            .timer-controls {
+                position: static;
+                justify-content: center;
+                margin-bottom: 20px;
+            }
+
+            .word-info {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .stats-toggle {
+                position: static;
+                margin-top: 10px;
+                display: block;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 1.5rem;
+            }
+
+            .word-display {
+                font-size: 1.5rem;
+            }
+
+            .question-card {
+                padding: 20px 15px;
+            }
+
+            .final-score {
+                font-size: 3rem;
+            }
+        }
+
+        /* 音效和动画增强 */
+        .bounce {
+            animation: bounce 0.6s ease;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 60%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            80% { transform: translateY(-5px); }
+        }
+
+        .shake {
+            animation: shake 0.6s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+
+        .glow {
+            box-shadow: 0 0 20px rgba(127, 176, 105, 0.5);
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>英语词汇听写系统</h1>
+            <p>English Vocabulary Dictation System</p>
+        </div>
+
+        <div class="progress-container hidden" id="progressContainer">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-text">
+                <span id="progressText">准备开始...</span>
+                <span id="scoreText">得分: 0/0</span>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <!-- 欢迎界面 -->
+            <div class="welcome-screen" id="welcomeScreen">
+                <h2>欢迎使用英语词汇听写系统</h2>
+                <p>选择难度和听写模式，每个单词有30秒作答时间</p>
+                
+                <div class="difficulty-selection">
+                    <h3>选择难度级别</h3>
+                    <div class="difficulty-options">
+                        <button class="difficulty-btn active" data-difficulty="basic">基础词汇</button>
+                        <button class="difficulty-btn" data-difficulty="intermediate">中级词汇</button>
+                        <button class="difficulty-btn" data-difficulty="advanced">高级词汇</button>
+                        <button class="difficulty-btn" data-difficulty="mixed">混合模式</button>
+                    </div>
+                </div>
+                
+                <div class="mode-selection">
+                    <div class="mode-display">
+                        <span class="mode-icon">🇨🇳 ➡️ 🇬🇧</span>
+                        <span class="mode-text">中文 → 英文听写</span>
+                    </div>
+                </div>
+
+                
+                <button class="start-btn" id="startBtn">开始听写</button>
+            </div>
+
+            <!-- 答题界面 -->
+            <div class="question-card hidden" id="questionCard">
+                <div class="timer-controls">
+                    <button class="pause-btn" id="pauseBtn">暂停</button>
+                    <div class="timer" id="timer">30</div>
+                </div>
+                
+                <div class="word-display" id="wordDisplay">
+                    <span id="wordText"></span>
+                    <button class="pronunciation-btn" id="pronunciationBtn">🔊 发音</button>
+                </div>
+                
+                <div class="word-info">
+                    <div class="word-length-hint" id="lengthHint">字母数: ?</div>
+                </div>
+                
+                <div class="input-group">
+                    <input type="text" class="word-input" id="wordInput" placeholder="请输入答案" autocomplete="off">
+                    <div class="input-controls">
+                        <button class="hint-btn" id="hintBtn">提示</button>
+                        <button class="submit-btn" id="submitBtn">提交</button>
+                        <button class="skip-btn" id="skipBtn">跳过</button>
+                    </div>
+                    <div class="hint-display hidden" id="hintDisplay"></div>
+                </div>
+                
+                <div class="feedback hidden" id="feedback"></div>
+            </div>
+
+            <!-- 结果界面 -->
+            <div class="result-screen hidden" id="resultScreen">
+                <h2>听写完成！</h2>
+                <div class="final-score" id="finalScore">0%</div>
+                <div class="score-details">
+                    <div class="score-row">
+                        <span>总题数:</span>
+                        <span id="totalQuestions">0</span>
+                    </div>
+                    <div class="score-row">
+                        <span>正确数:</span>
+                        <span id="correctAnswers">0</span>
+                    </div>
+                    <div class="score-row">
+                        <span>使用提示:</span>
+                        <span id="hintUsed">0</span>
+                    </div>
+                    <div class="score-row">
+                        <span>跳过题目:</span>
+                        <span id="skippedQuestions">0</span>
+                    </div>
+                    <div class="score-row">
+                        <span>正确率:</span>
+                        <span id="accuracyRate">0%</span>
+                    </div>
+                </div>
+                
+                <div class="word-list" id="wordList"></div>
+                
+                <div>
+                    <button class="restart-btn" id="restartBtn">重新开始</button>
+                    <button class="history-btn" id="historyBtn">查看历史</button>
+                    <button class="mistakes-btn" id="mistakesBtn">错题本</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 历史记录模态框 -->
+    <div class="history-modal hidden" id="historyModal">
+        <div class="modal-content">
+            <button class="close-btn" id="closeHistoryModal">&times;</button>
+            <h2>历史记录与统计</h2>
+            <div id="historyContent"></div>
+        </div>
+    </div>
+
+    <!-- 错题本模态框 -->
+    <div class="mistakes-modal hidden" id="mistakesModal">
+        <div class="modal-content">
+            <button class="close-btn" id="closeMistakesModal">&times;</button>
+            <h2>错题本</h2>
+            <p>本次听写中的错误词汇</p>
+            <button class="download-btn" id="downloadBtn">📥 下载Excel错题本</button>
+            <div class="mistakes-list" id="mistakesList"></div>
+        </div>
+    </div>
+
+    <script>
+        // 扩展词汇数据库
+        const vocabularyDatabase = {
+            basic: [
+               { english: 'device', chinese: '设备；仪器；装置' },
+               { english: 'tablet', chinese: '平板电脑；药片' },
+              { english: 'volume', chinese: '音量；体积；量' },
+              { english: 'domestic', chinese: '家庭的；国内的' },
+             { english: 'chore', chinese: '家庭杂务；日常琐事' },
+             { english: 'burden', chinese: '负担；重担' },
+            { english: 'alter', chinese: '改变；变化' },
+           { english: 'assess', chinese: '评估；评定' },
+          { english: 'executive', chinese: '主管；经理' },
+          { english: 'consultant', chinese: '顾问' }
+            ],
+           intermediate: [
+    { english: 'scenario', chinese: '可能发生的事；剧情梗概' },
+    { english: 'furious', chinese: '狂怒的；猛烈的' },
+    { english: 'convention', chinese: '习俗；大会；公约' },
+    { english: 'tribe', chinese: '部落；一伙人' },
+    { english: 'immerse', chinese: '潜心于；浸没' },
+    { english: 'associate', chinese: '同事；伙伴；联想' },
+    { english: 'suite', chinese: '套房；一套' },
+    { english: 'lure', chinese: '诱惑；引诱' },
+    { english: 'convert', chinese: '转变；皈依' },
+    { english: 'nuance', chinese: '细微差别' }
+  ],
+          advanced: [
+    { english: 'velocity', chinese: '速度' },
+    { english: 'acceleration', chinese: '加速；增速' },
+    { english: 'deletion', chinese: '删除' },
+    { english: 'deceptive', chinese: '欺骗性的' },
+    { english: 'commerce', chinese: '商业；贸易' },
+    { english: 'reflective', chinese: '沉思的；反光的' },
+    { english: 'substitute', chinese: '替代品；代替' },
+    { english: 'discrete', chinese: '离散的；分开的' },
+    { english: 'adequacy', chinese: '充分；足够' },
+    { english: 'observant', chinese: '观察力敏锐的' }
+  ]
+        };
+
+        // 应用状态
+        let currentMode = 'chineseToEnglish'; // 固定为中译英模式
+        let currentDifficulty = 'basic';
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let timeLeft = 30;
+        let timer = null;
+        let isPaused = false;
+        let questions = [];
+        let answers = [];
+        let hintsUsed = 0;
+        let questionsSkipped = 0;
+        let speechSynthesis = window.speechSynthesis;
+
+        // 本地存储的统计数据
+        let statistics = {
+            sessions: [],
+            wordErrors: {},
+            totalSessions: 0,
+            bestScore: 0
+        };
+
+        // DOM 元素
+        const welcomeScreen = document.getElementById('welcomeScreen');
+        const questionCard = document.getElementById('questionCard');
+        const resultScreen = document.getElementById('resultScreen');
+        const progressContainer = document.getElementById('progressContainer');
+        const difficultyBtns = document.querySelectorAll('.difficulty-btn');
+        const startBtn = document.getElementById('startBtn');
+        const wordText = document.getElementById('wordText');
+        const pronunciationBtn = document.getElementById('pronunciationBtn');
+        const lengthHint = document.getElementById('lengthHint');
+        const wordInput = document.getElementById('wordInput');
+        const submitBtn = document.getElementById('submitBtn');
+        const hintBtn = document.getElementById('hintBtn');
+        const skipBtn = document.getElementById('skipBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const timerDisplay = document.getElementById('timer');
+        const feedback = document.getElementById('feedback');
+        const hintDisplay = document.getElementById('hintDisplay');
+        const progressFill = document.getElementById('progressFill');
+        const progressText = document.getElementById('progressText');
+        const scoreText = document.getElementById('scoreText');
+        const restartBtn = document.getElementById('restartBtn');
+        const historyBtn = document.getElementById('historyBtn');
+        const mistakesBtn = document.getElementById('mistakesBtn');
+        const historyModal = document.getElementById('historyModal');
+        const mistakesModal = document.getElementById('mistakesModal');
+        const closeHistoryModal = document.getElementById('closeHistoryModal');
+        const closeMistakesModal = document.getElementById('closeMistakesModal');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const mistakesList = document.getElementById('mistakesList');
+
+        // 初始化
+        loadStatistics();
+
+        // 音效相关
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(frequency, type = 'sine', duration = 200) {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = frequency;
+            oscillator.type = type;
+            
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration / 1000);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + duration / 1000);
+        }
+
+        function playCorrectSound() {
+            playSound(523.25, 'sine', 300); // C5
+            setTimeout(() => playSound(659.25, 'sine', 300), 150); // E5
+            setTimeout(() => playSound(783.99, 'sine', 400), 300); // G5
+        }
+
+        function playIncorrectSound() {
+            playSound(220, 'sawtooth', 400); // A3
+            setTimeout(() => playSound(196, 'sawtooth', 600), 200); // G3
+        }
+
+        function playHintSound() {
+            playSound(440, 'triangle', 200); // A4
+        }
+
+        // 难度选择
+        difficultyBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                difficultyBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentDifficulty = btn.dataset.difficulty;
+            });
+        });
+
+
+        // 发音功能 - 修复兼容性问题
+        pronunciationBtn.addEventListener('click', () => {
+            const currentQuestion = questions[currentQuestionIndex];
+            if (currentQuestion && 'speechSynthesis' in window) {
+                // 停止任何正在进行的语音合成
+                speechSynthesis.cancel();
+                
+                const utterance = new SpeechSynthesisUtterance(currentQuestion.english);
+                utterance.lang = 'en-US';
+                utterance.rate = 0.8;
+                utterance.volume = 1;
+                utterance.pitch = 1;
+                
+                // 处理语音合成的回调
+                utterance.onstart = () => {
+                    pronunciationBtn.textContent = '🔊 播放中...';
+                    pronunciationBtn.disabled = true;
+                };
+                
+                utterance.onend = () => {
+                    pronunciationBtn.textContent = '🔊 发音';
+                    pronunciationBtn.disabled = false;
+                };
+                
+                utterance.onerror = (event) => {
+                    console.log('Speech synthesis error:', event);
+                    pronunciationBtn.textContent = '🔊 发音';
+                    pronunciationBtn.disabled = false;
+                };
+                
+                // 确保语音合成服务已准备就绪
+                if (speechSynthesis.getVoices().length === 0) {
+                    speechSynthesis.addEventListener('voiceschanged', () => {
+                        speechSynthesis.speak(utterance);
+                    }, { once: true });
+                } else {
+                    speechSynthesis.speak(utterance);
+                }
+            } else {
+                alert('您的浏览器不支持语音合成功能');
+            }
+        });
+
+
+        // 开始听写
+        startBtn.addEventListener('click', startDictation);
+
+        function startDictation() {
+            // 重置状态
+            currentQuestionIndex = 0;
+            score = 0;
+            answers = [];
+            hintsUsed = 0;
+            questionsSkipped = 0;
+            
+            // 准备题目
+            let vocabulary = [];
+            
+            // 使用预设词汇
+            if (currentDifficulty === 'mixed') {
+                vocabulary = [...vocabularyDatabase.basic, ...vocabularyDatabase.intermediate, ...vocabularyDatabase.advanced];
+            } else {
+                vocabulary = [...vocabularyDatabase[currentDifficulty]];
+            }
+            
+            if (vocabulary.length === 0) {
+                alert('请先选择难度！');
+                return;
+            }
+            
+            questions = vocabulary.sort(() => Math.random() - 0.5);
+            
+            // 切换界面
+            welcomeScreen.classList.add('hidden');
+            progressContainer.classList.remove('hidden');
+            questionCard.classList.remove('hidden');
+            
+            // 开始第一题
+            showQuestion();
+        }
+
+        function showQuestion() {
+            if (currentQuestionIndex >= questions.length) {
+                showResults();
+                return;
+            }
+
+            const question = questions[currentQuestionIndex];
+            
+            // 显示中文，让用户输入英文
+            wordText.textContent = question.chinese;
+            wordInput.placeholder = '请输入英文单词';
+            lengthHint.textContent = `字母数: ${question.english.length}`;
+            
+            // 重置输入框和反馈
+            wordInput.value = '';
+            wordInput.disabled = false;
+            submitBtn.disabled = false;
+            hintBtn.disabled = false;
+            skipBtn.disabled = false;
+            feedback.classList.add('hidden');
+            hintDisplay.classList.add('hidden');
+            
+            // 重置动画
+            questionCard.style.animation = 'none';
+            questionCard.offsetHeight;
+            questionCard.style.animation = 'slideIn 0.5s ease forwards';
+            
+            // 更新进度
+            updateProgress();
+            
+            // 开始倒计时
+            startTimer();
+            
+            // 焦点到输入框
+            wordInput.focus();
+        }
+
+        function startTimer() {
+            timeLeft = 30;
+            isPaused = false;
+            pauseBtn.textContent = '暂停';
+            timerDisplay.textContent = timeLeft;
+            timerDisplay.classList.remove('warning', 'paused');
+            
+            timer = setInterval(() => {
+                if (!isPaused) {
+                    timeLeft--;
+                    timerDisplay.textContent = timeLeft;
+                    
+                    if (timeLeft <= 10) {
+                        timerDisplay.classList.add('warning');
+                    }
+                    
+                    if (timeLeft <= 0) {
+                        clearInterval(timer);
+                        submitAnswer();
+                    }
+                }
+            }, 1000);
+        }
+
+        function stopTimer() {
+            if (timer) {
+                clearInterval(timer);
+                timer = null;
+            }
+        }
+
+        // 暂停功能
+        pauseBtn.addEventListener('click', () => {
+            isPaused = !isPaused;
+            if (isPaused) {
+                pauseBtn.textContent = '继续';
+                timerDisplay.classList.add('paused');
+                wordInput.disabled = true;
+                submitBtn.disabled = true;
+                hintBtn.disabled = true;
+                skipBtn.disabled = true;
+            } else {
+                pauseBtn.textContent = '暂停';
+                timerDisplay.classList.remove('paused');
+                wordInput.disabled = false;
+                submitBtn.disabled = false;
+                hintBtn.disabled = false;
+                skipBtn.disabled = false;
+                wordInput.focus();
+            }
+        });
+
+        // 提示功能
+        hintBtn.addEventListener('click', () => {
+            const question = questions[currentQuestionIndex];
+            const correctAnswer = question.english;
+            
+            // 英文单词提示前两个字母
+            const hint = `前两个字母: ${correctAnswer.substring(0, 2).toUpperCase()}___`;
+            
+            hintDisplay.textContent = hint;
+            hintDisplay.classList.remove('hidden');
+            hintBtn.disabled = true;
+            hintsUsed++;
+            
+            playHintSound();
+        });
+
+        // 跳过功能
+        skipBtn.addEventListener('click', () => {
+            stopTimer();
+            questionsSkipped++;
+            
+            const question = questions[currentQuestionIndex];
+            answers.push({
+                question: question,
+                userAnswer: '',
+                correctAnswer: question.english,
+                isCorrect: false,
+                isSkipped: true,
+                timeUsed: 30 - timeLeft,
+                hintUsed: false
+            });
+            
+            showFeedback(false, `已跳过！正确答案是：${question.english}`, 'skip');
+            
+            setTimeout(() => {
+                currentQuestionIndex++;
+                showQuestion();
+            }, 2000);
+        });
+
+        // 提交答案
+        submitBtn.addEventListener('click', submitAnswer);
+        wordInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !isPaused) {
+                submitAnswer();
+            }
+        });
+
+        function submitAnswer() {
+            if (isPaused) return;
+            
+            stopTimer();
+            
+            const userAnswer = normalizeAnswer(wordInput.value.trim());
+            const question = questions[currentQuestionIndex];
+            const correctAnswer = normalizeAnswer(question.english);
+            
+            const isCorrect = userAnswer === correctAnswer;
+            const hintWasUsed = !hintDisplay.classList.contains('hidden');
+            
+            // 记录错误词汇统计
+            if (!isCorrect) {
+                const wordKey = `${question.english}-${question.chinese}`;
+                statistics.wordErrors[wordKey] = (statistics.wordErrors[wordKey] || 0) + 1;
+            }
+            
+            // 记录答案
+            answers.push({
+                question: question,
+                userAnswer: wordInput.value.trim(),
+                correctAnswer: question.english,
+                isCorrect: isCorrect,
+                isSkipped: false,
+                timeUsed: 30 - timeLeft,
+                hintUsed: hintWasUsed
+            });
+            
+            if (isCorrect) {
+                score++;
+                playCorrectSound();
+                questionCard.classList.add('bounce');
+                showFeedback(true, `正确！${hintWasUsed ? '(使用了提示)' : ''}`, 'correct');
+            } else {
+                playIncorrectSound();
+                questionCard.classList.add('shake');
+                showFeedback(false, `错误！正确答案是：${question.english}`, 'incorrect');
+            }
+            
+            // 禁用输入
+            wordInput.disabled = true;
+            submitBtn.disabled = true;
+            hintBtn.disabled = true;
+            skipBtn.disabled = true;
+            
+            // 移除动画类
+            setTimeout(() => {
+                questionCard.classList.remove('bounce', 'shake');
+            }, 600);
+            
+            // 2秒后显示下一题
+            setTimeout(() => {
+                currentQuestionIndex++;
+                showQuestion();
+            }, 2000);
+        }
+
+        // 答案标准化处理
+        function normalizeAnswer(answer) {
+            return answer.toLowerCase()
+                        .replace(/\s+/g, ' ')  // 多个空格替换为单个空格
+                        .trim()                // 去除首尾空格
+                        .replace(/[.,!?;:]/g, ''); // 移除标点符号
+        }
+
+        function showFeedback(isCorrect, message, type) {
+            feedback.textContent = message;
+            feedback.className = `feedback ${type}`;
+            feedback.classList.remove('hidden');
+            
+            if (isCorrect) {
+                feedback.classList.add('glow');
+                setTimeout(() => feedback.classList.remove('glow'), 1000);
+            }
+        }
+
+        function updateProgress() {
+            const progress = (currentQuestionIndex / questions.length) * 100;
+            progressFill.style.width = `${progress}%`;
+            progressText.textContent = `第 ${currentQuestionIndex + 1} 题 / 共 ${questions.length} 题`;
+            scoreText.textContent = `得分: ${score}/${currentQuestionIndex}`;
+        }
+
+        function showResults() {
+            // 隐藏其他界面
+            questionCard.classList.add('hidden');
+            progressContainer.classList.add('hidden');
+            
+            // 显示结果界面
+            resultScreen.classList.remove('hidden');
+            
+            // 计算并显示结果
+            const accuracy = Math.round((score / questions.length) * 100);
+            const incorrect = questions.length - score;
+            
+            document.getElementById('finalScore').textContent = `${accuracy}%`;
+            document.getElementById('totalQuestions').textContent = questions.length;
+            document.getElementById('correctAnswers').textContent = score;
+            document.getElementById('hintUsed').textContent = hintsUsed;
+            document.getElementById('skippedQuestions').textContent = questionsSkipped;
+            document.getElementById('accuracyRate').textContent = `${accuracy}%`;
+            
+            // 保存统计数据
+            saveSessionData(accuracy);
+            
+            // 显示详细结果
+            showWordList();
+            
+            // 更新错题本按钮状态
+            updateMistakesButton();
+        }
+
+        function showWordList() {
+            const wordList = document.getElementById('wordList');
+            wordList.innerHTML = '';
+            
+            answers.forEach((answer, index) => {
+                const wordItem = document.createElement('div');
+                wordItem.className = 'word-item';
+                
+                const questionText = `${answer.question.chinese} → ${answer.question.english}`;
+                
+                let statusText = '';
+                let statusClass = '';
+                
+                if (answer.isSkipped) {
+                    statusText = '跳过';
+                    statusClass = 'status-skip';
+                } else if (answer.isCorrect) {
+                    statusText = answer.hintUsed ? '✓ 正确(提示)' : '✓ 正确';
+                    statusClass = answer.hintUsed ? 'status-hint' : 'status-correct';
+                } else {
+                    statusText = '✗ 错误';
+                    statusClass = 'status-incorrect';
+                }
+                
+                wordItem.innerHTML = `
+                    <span>${questionText}</span>
+                    <span class="word-status ${statusClass}">${statusText}</span>
+                `;
+                
+                wordList.appendChild(wordItem);
+            });
+        }
+
+        // 保存会话数据
+        function saveSessionData(accuracy) {
+            const sessionData = {
+                date: new Date().toISOString(),
+                mode: currentMode,
+                difficulty: currentDifficulty,
+                totalQuestions: questions.length,
+                correctAnswers: score,
+                accuracy: accuracy,
+                hintsUsed: hintsUsed,
+                questionsSkipped: questionsSkipped,
+                answers: answers
+            };
+            
+            statistics.sessions.push(sessionData);
+            statistics.totalSessions++;
+            if (accuracy > statistics.bestScore) {
+                statistics.bestScore = accuracy;
+            }
+            
+            // 只保留最近20次记录
+            if (statistics.sessions.length > 20) {
+                statistics.sessions = statistics.sessions.slice(-20);
+            }
+            
+            localStorage.setItem('dictationStatistics', JSON.stringify(statistics));
+        }
+
+        // 加载统计数据
+        function loadStatistics() {
+            const saved = localStorage.getItem('dictationStatistics');
+            if (saved) {
+                statistics = JSON.parse(saved);
+            }
+        }
+
+        // 更新错题本按钮状态
+        function updateMistakesButton() {
+            const mistakes = answers.filter(answer => !answer.isCorrect && !answer.isSkipped);
+            mistakesBtn.disabled = mistakes.length === 0;
+            if (mistakes.length === 0) {
+                mistakesBtn.textContent = '错题本 (无错题)';
+            } else {
+                mistakesBtn.textContent = `错题本 (${mistakes.length}题)`;
+            }
+        }
+
+        // 显示错题本
+        function showMistakesModal() {
+            const mistakes = answers.filter(answer => !answer.isCorrect && !answer.isSkipped);
+            
+            if (mistakes.length === 0) {
+                mistakesList.innerHTML = '<p style="text-align: center; color: var(--success-color);">🎉 恭喜！本次听写没有错题！</p>';
+                downloadBtn.disabled = true;
+            } else {
+                let html = '';
+                mistakes.forEach((mistake, index) => {
+                    html += `
+                        <div class="mistake-item">
+                            <div class="mistake-word">
+                                <div class="mistake-english">${mistake.question.english}</div>
+                                <div class="mistake-chinese">${mistake.question.chinese}</div>
+                            </div>
+                            <div style="color: var(--text-secondary); font-size: 0.8rem;">
+                                你的答案: ${mistake.userAnswer || '(未填写)'}
+                            </div>
+                        </div>
+                    `;
+                });
+                mistakesList.innerHTML = html;
+                downloadBtn.disabled = false;
+            }
+            
+            mistakesModal.classList.remove('hidden');
+        }
+
+        // 下载Excel错题本
+        function downloadMistakesExcel() {
+            const mistakes = answers.filter(answer => !answer.isCorrect && !answer.isSkipped);
+            
+            if (mistakes.length === 0) {
+                alert('没有错题可以下载！');
+                return;
+            }
+
+            // 创建CSV内容（Excel可以直接打开CSV文件）
+            let csvContent = '\uFEFF'; // BOM for UTF-8
+            csvContent += '英文,中文\n'; // 表头
+            
+            mistakes.forEach(mistake => {
+                csvContent += `"${mistake.question.english}","${mistake.question.chinese}"\n`;
+            });
+
+            // 创建Blob对象
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            
+            // 创建下载链接
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            
+            // 生成文件名（包含日期和时间）
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('zh-CN').replace(/\//g, '-');
+            const timeStr = now.toLocaleTimeString('zh-CN', { hour12: false }).replace(/:/g, '-');
+            const filename = `错题本_${dateStr}_${timeStr}.csv`;
+            
+            link.setAttribute('download', filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            // 显示成功消息
+            downloadBtn.textContent = '✅ 下载成功';
+            setTimeout(() => {
+                downloadBtn.textContent = '📥 下载Excel错题本';
+            }, 2000);
+        }
+
+        // 历史记录
+        historyBtn.addEventListener('click', () => {
+            showHistoryModal();
+        });
+
+        closeHistoryModal.addEventListener('click', () => {
+            historyModal.classList.add('hidden');
+        });
+
+        historyModal.addEventListener('click', (e) => {
+            if (e.target === historyModal) {
+                historyModal.classList.add('hidden');
+            }
+        });
+
+        // 错题本
+        mistakesBtn.addEventListener('click', () => {
+            showMistakesModal();
+        });
+
+        closeMistakesModal.addEventListener('click', () => {
+            mistakesModal.classList.add('hidden');
+        });
+
+        mistakesModal.addEventListener('click', (e) => {
+            if (e.target === mistakesModal) {
+                mistakesModal.classList.add('hidden');
+            }
+        });
+
+        downloadBtn.addEventListener('click', () => {
+            downloadMistakesExcel();
+        });
+
+        function showHistoryModal() {
+            const historyContent = document.getElementById('historyContent');
+            
+            if (statistics.sessions.length === 0) {
+                historyContent.innerHTML = '<p>暂无历史记录</p>';
+            } else {
+                let html = '<h3>最近练习记录</h3>';
+                
+                statistics.sessions.slice().reverse().forEach((session, index) => {
+                    const date = new Date(session.date).toLocaleString('zh-CN');
+                    const modeText = session.mode === 'chineseToEnglish' ? '中译英' : '英译中';
+                    const difficultyText = {
+                        'basic': '基础',
+                        'intermediate': '中级',
+                        'advanced': '高级',
+                        'mixed': '混合'
+                    }[session.difficulty];
+                    
+                    html += `
+                        <div style="border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; margin: 10px 0;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                <strong>${date}</strong>
+                                <span style="color: var(--primary-color); font-weight: bold;">${session.accuracy}%</span>
+                            </div>
+                            <div style="color: var(--text-secondary); font-size: 0.9rem;">
+                                ${modeText} · ${difficultyText} · ${session.correctAnswers}/${session.totalQuestions} 正确
+                                ${session.hintsUsed > 0 ? ` · ${session.hintsUsed} 次提示` : ''}
+                                ${session.questionsSkipped > 0 ? ` · ${session.questionsSkipped} 次跳过` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                // 错误统计
+                if (Object.keys(statistics.wordErrors).length > 0) {
+                    html += '<h3 style="margin-top: 30px;">错误统计</h3>';
+                    const sortedErrors = Object.entries(statistics.wordErrors)
+                        .sort(([,a], [,b]) => b - a)
+                        .slice(0, 10);
+                    
+                    sortedErrors.forEach(([wordKey, count]) => {
+                        const [english, chinese] = wordKey.split('-');
+                        html += `
+                            <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border-color);">
+                                <span>${english} - ${chinese}</span>
+                                <span style="color: var(--error-color); font-weight: bold;">${count} 次</span>
+                            </div>
+                        `;
+                    });
+                }
+                
+                historyContent.innerHTML = html;
+            }
+            
+            historyModal.classList.remove('hidden');
+        }
+
+        // 重新开始
+        restartBtn.addEventListener('click', () => {
+            // 重置界面
+            resultScreen.classList.add('hidden');
+            welcomeScreen.classList.remove('hidden');
+            
+            // 重置状态
+            currentQuestionIndex = 0;
+            score = 0;
+            answers = [];
+            hintsUsed = 0;
+            questionsSkipped = 0;
+            
+            // 重置难度按钮
+            difficultyBtns.forEach(btn => btn.classList.remove('active'));
+            document.querySelector('[data-difficulty="basic"]').classList.add('active');
+            currentDifficulty = 'basic';
+        });
+
+        // 防止页面刷新时丢失状态
+        window.addEventListener('beforeunload', (e) => {
+            if (currentQuestionIndex > 0 && currentQuestionIndex < questions.length) {
+                e.preventDefault();
+                e.returnValue = '听写进行中，确定要离开吗？';
+            }
+        });
+
+        // 键盘快捷键
+        document.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'INPUT') return;
+            
+            switch(e.key) {
+                case ' ':
+                    e.preventDefault();
+                    if (!questionCard.classList.contains('hidden') && !isPaused) {
+                        pauseBtn.click();
+                    }
+                    break;
+                case 'h':
+                case 'H':
+                    if (!questionCard.classList.contains('hidden') && !hintBtn.disabled) {
+                        hintBtn.click();
+                    }
+                    break;
+                case 's':
+                case 'S':
+                    if (!questionCard.classList.contains('hidden') && !skipBtn.disabled) {
+                        skipBtn.click();
+                    }
+                    break;
+            }
+        });
+    </script>
+</body>
+</html>
